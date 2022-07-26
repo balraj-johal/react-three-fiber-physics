@@ -5,4 +5,8 @@ html, body, #root, main {
   top: 0;
   left: 0;
 }
+
+main {
+  background-color: #264653;
+}
 /*# sourceMappingURL=App.css.map */
