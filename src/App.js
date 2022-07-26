@@ -1,30 +1,16 @@
 import { Suspense } from 'react';
-import { Environment, Box } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { Physics, RigidBody } from "@react-three/rapier";
+
 import './styles/App.css';
 
-function App() {
+import Scene from './Scene';
 
+function App() {
     return (
         <main>
-            <Canvas>
+            <Canvas camera={{ near: 0.001, far: 100 }}>
                 <Suspense>
-                    <Environment preset="studio" />
-                    <ambientLight />
-                    <Physics>
-                        <RigidBody colliders="cuboid" type="dynamic">
-                            <Box />
-                        </RigidBody>
-                        <RigidBody colliders="cuboid" type="fixed">
-                            <mesh position={[0, -2, 0]} scale={[3, 1, 1]} >
-                                <boxGeometry />
-                                <meshBasicMaterial
-                                    color={0x2A9D8F}
-                                />
-                            </mesh>
-                        </RigidBody>
-                    </Physics>
+                    <Scene />
                 </Suspense>
             </Canvas>
         </main>
