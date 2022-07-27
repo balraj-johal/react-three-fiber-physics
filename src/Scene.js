@@ -9,13 +9,13 @@ import Projectile from './Projectile';
 const DEBUG = false;
 
 function Scene() {
-    const worldPoint = new THREE.Vector3;
+    const worldPoint = new THREE.Vector3();
     const raycaster = new THREE.Raycaster();
     const axesRef = useRef();
     const projectileID = useRef(0);
     const [projectiles, setProjectiles] = useState([]);
 
-    const { camera, scene, mouse } = useThree();
+    const { camera, scene, mouse, viewport } = useThree();
     
     let projectClickToWorldCoords = (screenSpaceXY, camera) => {
         worldPoint.x = screenSpaceXY.x;
@@ -59,13 +59,15 @@ function Scene() {
     return (
         <>
             <Environment preset="city" />
-            {/* <ambientLight /> */}
+            <InteractionPlane 
+                zPos={camera.position.z}
+                viewport={viewport}
+                fireProjectile={fireProjectile} />
             <Physics>
                 <RigidBody colliders="cuboid" type="dynamic">
                     <mesh 
                         position={[0, 1, 0]} 
                         scale={[1, 1, 1]} 
-                        onClick={fireProjectile} 
                     >
                         <boxGeometry />
                         <meshStandardMaterial
@@ -77,7 +79,6 @@ function Scene() {
                     <mesh 
                         position={[0, -2, 0]} 
                         scale={[3, 1, 1]} 
-                        onClick={fireProjectile} 
                     >
                         <boxGeometry />
                         <meshStandardMaterial
@@ -95,6 +96,22 @@ function Scene() {
             </Physics>
         </>
     );
+}
+
+function InteractionPlane(props) {
+    return(
+        <mesh // transparent click observer
+            // position directly in front of camera
+            position={[0, 0, props.zPos - 0.05]} 
+            scale={[1, 1, 0.1]} 
+            onClick={props.fireProjectile} 
+        >
+            <boxGeometry 
+                args={[props.viewport.width, props.viewport.height]} 
+            />
+            <meshBasicMaterial opacity={0} transparent={true} />
+        </mesh>
+    )
 }
 
 export default Scene;
