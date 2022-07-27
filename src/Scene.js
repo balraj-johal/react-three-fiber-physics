@@ -7,6 +7,7 @@ import * as THREE from "three";
 import Projectile from './Projectile';
 
 const DEBUG = false;
+const PROJECTILE_LIFETIME = 0.5;
 
 function Scene() {
     const worldPoint = new THREE.Vector3();
@@ -24,6 +25,20 @@ function Scene() {
         return worldPoint.unproject(camera);
     }
 
+    const despawnProjectile = (id) => {
+        console.log("despawn", id)
+        const projectilesCopy = [...projectiles];
+        let targetIndex = null;
+        projectilesCopy.forEach((proj, index) => {
+            console.log("checking", index)
+            if (proj.id === id) targetIndex = index; 
+        })
+        // for some reason there was an edge case where first
+        // projectile doesn't get removed by splice statement
+        if (targetIndex === 0) projectilesCopy.shift();
+        if (targetIndex) projectilesCopy.splice(targetIndex, 1);
+        setProjectiles(projectilesCopy);
+    }
 
     let fireProjectile = () => {
         // raycast from click position to any mesh
@@ -47,7 +62,8 @@ function Scene() {
         const newProjectile = {
             origin: origin,
             target: intersection.point,
-            id: projectileID.current
+            id: projectileID.current,
+            expiresOn: Date.now() + PROJECTILE_LIFETIME * 1000,
         };
         projectileID.current += 1;
         setProjectiles([...projectiles, newProjectile]);
@@ -91,8 +107,9 @@ function Scene() {
                     <Projectile 
                         trajectory={trajectory} 
                         key={trajectory.id} 
+                        despawnProjectile={despawnProjectile}
                     />
-                ))}
+                )) }
             </Physics>
         </>
     );
