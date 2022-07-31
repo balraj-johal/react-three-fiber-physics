@@ -6,6 +6,47 @@ html, body, #root, main {
     left: 0;
 }
 
+#ui-wrap {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+
+    button#reset {
+        pointer-events: all;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Syne Mono', monospace;
+        font-size: 32px;
+        background-color: transparent;
+        color: white;
+        border: 0;
+        height: 40px;
+        padding: 44px;
+
+        animation: flash 1000ms ease-in-out 0ms infinite alternate-reverse;
+
+        // &:disabled {
+        //     pointer-events: none;
+        //     opacity: 0;
+        //     animation: none;
+        // }
+    }
+}
+
+@keyframes flash {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
 main {
     background-color: #264653;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap');

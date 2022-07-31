@@ -19,7 +19,12 @@ function ResettableRigidBody({ children, ...props }) {
     }, [props.needsReset])
 
     return(
-        <RigidBody ref={ref} colliders={props.colliders} type={props.type} >
+        <RigidBody 
+            canSleep={true}
+            ref={ref} 
+            colliders={props.colliders} 
+            type={props.type}
+        >
             { children }
         </RigidBody>
     )

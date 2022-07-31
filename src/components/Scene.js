@@ -21,6 +21,7 @@ function Scene(props) {
     const { camera, scene, mouse, viewport } = useThree();
     
     let projectClickToWorldCoords = (screenSpaceXY, camera) => {
+        props.setChanged(true);
         worldPoint.x = screenSpaceXY.x;
         worldPoint.y = screenSpaceXY.y;
         worldPoint.z = 5;

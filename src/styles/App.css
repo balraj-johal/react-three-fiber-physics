@@ -1,9 +1,65 @@
+@import url("https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap");
 html, body, #root, main {
   height: 100%;
   width: 100%;
   position: absolute;
   top: 0;
   left: 0;
+}
+
+#ui-wrap {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  pointer-events: none;
+}
+
+#ui-wrap button#reset {
+  pointer-events: all;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  font-family: 'Syne Mono', monospace;
+  font-size: 32px;
+  background-color: transparent;
+  color: white;
+  border: 0;
+  height: 40px;
+  padding: 44px;
+  animation: flash 1000ms ease-in-out 0ms infinite alternate-reverse;
+}
+
+@-webkit-keyframes flash {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 main {
