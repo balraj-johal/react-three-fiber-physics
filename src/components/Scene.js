@@ -1,15 +1,17 @@
 import { Environment } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { Physics, RigidBody } from "@react-three/rapier";
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import * as THREE from "three";
+import InteractionPlane from './InteractionPlane';
 import Projectile from './Projectile';
+import ResettableRigidBody from './ResettableRigidBody';
 
 const DEBUG = false;
-const PROJECTILE_LIFETIME = 0.5;
+const PROJECTILE_LIFETIME = 5;
 
-function Scene() {
+function Scene(props) {
     const worldPoint = new THREE.Vector3();
     const raycaster = new THREE.Raycaster();
     const axesRef = useRef();
@@ -26,11 +28,9 @@ function Scene() {
     }
 
     const despawnProjectile = (id) => {
-        console.log("despawn", id)
         const projectilesCopy = [...projectiles];
         let targetIndex = null;
         projectilesCopy.forEach((proj, index) => {
-            console.log("checking", index)
             if (proj.id === id) targetIndex = index; 
         })
         // for some reason there was an edge case where first
@@ -40,7 +40,7 @@ function Scene() {
         setProjectiles(projectilesCopy);
     }
 
-    let fireProjectile = () => {
+    const fireProjectile = () => {
         // raycast from click position to any mesh
         const origin = projectClickToWorldCoords(mouse, camera);
         raycaster.setFromCamera(mouse, camera);
@@ -72,37 +72,74 @@ function Scene() {
         if (DEBUG) axesRef.current.position.copy(intersection.point);
     }
 
+
+    const INITIAL_LIST = {
+        "box": { needsReset: false },
+        "box2": { needsReset: false },
+    }
+    const [resetList, setResetList] = useState(INITIAL_LIST);
+
+    useEffect(() => {
+        if (props.reset) {
+            setResetList(INITIAL_LIST);
+            props.setReset(false);
+        }
+    }, [props.reset])
+    
+    const rbHasReset = (id) => {
+        const resetListCopy = {...resetList};
+        resetListCopy[id].needsReset = false;
+        setResetList(resetListCopy);
+    }
+
     return (
         <>
             <Environment preset="city" />
             <InteractionPlane 
                 zPos={camera.position.z}
                 viewport={viewport}
-                fireProjectile={fireProjectile} />
+                fireProjectile={fireProjectile} 
+            />
             <Physics>
-                <RigidBody colliders="cuboid" type="dynamic">
+                <ResettableRigidBody
+                    needsReset={resetList["box"]}
+                    id="box"
+                    rbHasReset={rbHasReset}
+                    colliders="cuboid" 
+                    type="dynamic"
+                >
                     <mesh 
                         position={[0, 1, 0]} 
                         scale={[1, 1, 1]} 
                     >
                         <boxGeometry />
-                        <meshStandardMaterial
-                            color={0xE9C46A}
-                        />
+                        <meshStandardMaterial color={0xE9C46A} />
                     </mesh>
-                </RigidBody>
+                </ResettableRigidBody>
+                <ResettableRigidBody 
+                    needsReset={resetList["box2"]}
+                    id="box2"
+                    rbHasReset={rbHasReset}
+                    colliders="cuboid" 
+                    type="dynamic"
+                >
+                    <mesh 
+                        position={[1.2, 1, 0]} 
+                        scale={[1, 1, 1]} 
+                    >
+                        <boxGeometry />
+                        <meshStandardMaterial color={0xE9C46A} />
+                    </mesh>
+                </ResettableRigidBody>
                 <RigidBody colliders="cuboid" type="fixed">
                     <mesh 
                         position={[0, -2, 0]} 
                         scale={[3, 1, 1]} 
                     >
                         <boxGeometry />
-                        <meshStandardMaterial
-                            color={0x2A9D8F}
-                        />
+                        <meshStandardMaterial color={0x2A9D8F} />
                     </mesh>
                 </RigidBody>
-                {DEBUG && <axesHelper ref={axesRef} />}
                 { projectiles.map((trajectory) => (
                     <Projectile 
                         trajectory={trajectory} 
@@ -113,22 +150,6 @@ function Scene() {
             </Physics>
         </>
     );
-}
-
-function InteractionPlane(props) {
-    return(
-        <mesh // transparent click observer
-            // position directly in front of camera
-            position={[0, 0, props.zPos - 0.05]} 
-            scale={[1, 1, 0.1]} 
-            onClick={props.fireProjectile} 
-        >
-            <boxGeometry 
-                args={[props.viewport.width, props.viewport.height]} 
-            />
-            <meshBasicMaterial opacity={0} transparent={true} />
-        </mesh>
-    )
 }
 
 export default Scene;
