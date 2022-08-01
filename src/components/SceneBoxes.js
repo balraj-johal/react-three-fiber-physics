@@ -1,7 +1,7 @@
 import { Environment } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { Physics, RigidBody } from "@react-three/rapier";
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import * as THREE from "three";
 import InteractionPlane from './InteractionPlane';
@@ -10,6 +10,10 @@ import ResettableRigidBody from './ResettableRigidBody';
 
 const DEBUG = false;
 const PROJECTILE_LIFETIME = 5;
+const INITIAL_NEEDS_RESET_LIST = {
+    "box": true,
+    "box2": true,
+}
 
 function Scene(props) {
     const worldPoint = new THREE.Vector3();
@@ -73,25 +77,26 @@ function Scene(props) {
         if (DEBUG) axesRef.current.position.copy(intersection.point);
     }
 
-
-    const INITIAL_LIST = {
-        "box": { needsReset: false },
-        "box2": { needsReset: false },
-    }
-    const [resetList, setResetList] = useState(INITIAL_LIST);
-
+    const [resetList, setResetList] = useState({...INITIAL_NEEDS_RESET_LIST});
+    const { setReset } = props;
     useEffect(() => {
         if (props.reset) {
-            setResetList(INITIAL_LIST);
-            props.setReset(false);
+            console.log("scene reset")
+            setResetList({...INITIAL_NEEDS_RESET_LIST});
+            setProjectiles([]);
+            setReset(false);
         }
-    }, [props.reset])
+    }, [props.reset, setReset])
+    useEffect(() => {
+        console.log(resetList);
+    }, [resetList])
     
-    const rbHasReset = (id) => {
+    const rbHasReset = useCallback((id) => {
+        console.log(id, "has reset")
         const resetListCopy = {...resetList};
-        resetListCopy[id].needsReset = false;
+        resetListCopy[id] = false;
         setResetList(resetListCopy);
-    }
+    }, [resetList])
 
     return (
         <>
@@ -110,7 +115,7 @@ function Scene(props) {
                     type="dynamic"
                 >
                     <mesh 
-                        position={[0, 1, 0]} 
+                        position={[0, 0, 0]} 
                         scale={[1, 1, 1]} 
                     >
                         <boxGeometry />
@@ -125,7 +130,7 @@ function Scene(props) {
                     type="dynamic"
                 >
                     <mesh 
-                        position={[1.2, 1, 0]} 
+                        position={[1.2, 0, 0]} 
                         scale={[1, 1, 1]} 
                     >
                         <boxGeometry />
@@ -134,8 +139,8 @@ function Scene(props) {
                 </ResettableRigidBody>
                 <RigidBody colliders="cuboid" type="fixed">
                     <mesh 
-                        position={[0, -2, 0]} 
-                        scale={[3, 1, 1]} 
+                        position={[0, -1.2, 0]} 
+                        scale={[3, 1, 3]} 
                     >
                         <boxGeometry />
                         <meshStandardMaterial color={0x2A9D8F} />

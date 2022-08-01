@@ -11,12 +11,15 @@ function ResettableRigidBody({ children, ...props }) {
         ref.current.setLinvel({ x: 0.0, y: 0.0, z: 0.0 });
     }
 
+    const { rbHasReset, needsReset, id } = props;
     useEffect(() => {
-        if (props.needsReset) {
+        console.log(`${id} needs reset: ${needsReset}`)
+        if (needsReset) {
+            console.log("reee")
             resetRB();
-            props.rbHasReset(props.id);
+            rbHasReset(id);
         }
-    }, [props.needsReset])
+    }, [rbHasReset, needsReset, id])
 
     return(
         <RigidBody 

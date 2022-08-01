@@ -23,7 +23,7 @@ html, body, #root, main {
   pointer-events: none;
 }
 
-#ui-wrap button#reset {
+#ui-wrap button {
   pointer-events: all;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -35,13 +35,54 @@ html, body, #root, main {
       -ms-flex-align: center;
           align-items: center;
   font-family: 'Syne Mono', monospace;
-  font-size: 32px;
   background-color: transparent;
   color: white;
   border: 0;
   height: 40px;
   padding: 44px;
+  margin-top: 15px;
+}
+
+#ui-wrap button#reset {
   animation: flash 1000ms ease-in-out 0ms infinite alternate-reverse;
+}
+
+#ui-wrap button#reset:disabled {
+  -webkit-animation: none;
+          animation: none;
+}
+
+#ui-wrap #switcher {
+  position: absolute;
+  bottom: 0;
+  left: 40%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  width: 20%;
+  -webkit-box-pack: space-evenly;
+      -ms-flex-pack: space-evenly;
+          justify-content: space-evenly;
+}
+
+#ui-wrap #switcher button {
+  opacity: 0.5;
+}
+
+#ui-wrap #switcher button.selected {
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  #ui-wrap button {
+    font-size: 22px;
+  }
+}
+
+@media (min-width: 900px) {
+  #ui-wrap button {
+    font-size: 32px;
+  }
 }
 
 @-webkit-keyframes flash {

@@ -1,0 +1,133 @@
+import { Environment } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
+import { Physics, RigidBody } from "@react-three/rapier";
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import * as THREE from "three";
+import InteractionPlane from './InteractionPlane';
+import Projectile from './Projectile';
+import BedroomTest from './BedroomTest';
+
+const DEBUG = false;
+const PROJECTILE_LIFETIME = 5;
+const INITIAL_NEEDS_RESET_LIST = {
+    "pillow1": true,
+    "pillow2": true,
+    "bed": true,
+}
+
+function SceneBedroom(props) {
+    const worldPoint = new THREE.Vector3();
+    const raycaster = new THREE.Raycaster();
+    const axesRef = useRef();
+    const projectileID = useRef(0);
+    const [projectiles, setProjectiles] = useState([]);
+
+    const { camera, scene, mouse, viewport } = useThree();
+    
+    let projectClickToWorldCoords = (screenSpaceXY, camera) => {
+        props.setChanged(true);
+        worldPoint.x = screenSpaceXY.x;
+        worldPoint.y = screenSpaceXY.y;
+        worldPoint.z = 5;
+        return worldPoint.unproject(camera);
+    }
+
+    const despawnProjectile = (id) => {
+        const projectilesCopy = [...projectiles];
+        let targetIndex = null;
+        projectilesCopy.forEach((proj, index) => {
+            if (proj.id === id) targetIndex = index; 
+        })
+        // for some reason there was an edge case where first
+        // projectile doesn't get removed by splice statement
+        if (targetIndex === 0) projectilesCopy.shift();
+        if (targetIndex) projectilesCopy.splice(targetIndex, 1);
+        setProjectiles(projectilesCopy);
+    }
+
+    const fireProjectile = () => {
+        // raycast from click position to any mesh
+        const origin = projectClickToWorldCoords(mouse, camera);
+        raycaster.setFromCamera(mouse, camera);
+        const intersections = raycaster.intersectObject(scene, true);
+
+        // check for closest valid intersection
+        let intersection;
+        intersections.forEach(hit => {
+            if (hit.object.type !== "Mesh") return;
+            if (intersection) {
+                if (hit.distance < intersection.distance) intersection = hit;
+            } else {
+                intersection = hit;
+            }
+        })
+
+        // instantiate projectile if necessary
+        if (!intersection) return;
+        const newProjectile = {
+            origin: origin,
+            target: intersection.point,
+            id: projectileID.current,
+            expiresOn: Date.now() + PROJECTILE_LIFETIME * 1000,
+        };
+        projectileID.current += 1;
+        setProjectiles([...projectiles, newProjectile]);
+
+        // set debug helper to target point if required
+        if (DEBUG) axesRef.current.position.copy(intersection.point);
+    }
+
+    const [resetList, setResetList] = useState({...INITIAL_NEEDS_RESET_LIST});
+    const { setReset } = props;
+    useEffect(() => {
+        if (props.reset) {
+            console.log("scene reset")
+            setResetList({...INITIAL_NEEDS_RESET_LIST});
+            setProjectiles([]);
+            setReset(false);
+        }
+    }, [props.reset, setReset])
+    useEffect(() => {
+        console.log(resetList);
+    }, [resetList])
+    
+    const rbHasReset = useCallback((id) => {
+        console.log(id, "has reset")
+        const resetListCopy = {...resetList};
+        resetListCopy[id] = false;
+        setResetList(resetListCopy);
+    }, [resetList])
+
+    return (
+        <>
+            <Environment preset="city" />
+            <InteractionPlane 
+                zPos={camera.position.z}
+                viewport={viewport}
+                fireProjectile={fireProjectile} 
+            />
+            <Physics>
+                <RigidBody colliders="cuboid" type="fixed">
+                    <mesh 
+                        position={[0, -1.2, 0]} 
+                        scale={[3, 1, 3]} 
+                    >
+                        <boxGeometry />
+                        <meshStandardMaterial color={0x2A9D8F} />
+                    </mesh>
+                </RigidBody>
+                <BedroomTest resetList={resetList} rbHasReset={rbHasReset} />
+                { projectiles.map((trajectory) => (
+                    <Projectile 
+                        trajectory={trajectory} 
+                        key={trajectory.id} 
+                        despawnProjectile={despawnProjectile}
+                    />
+                )) }
+            </Physics>
+        </>
+    );
+}
+
+export default SceneBedroom;
